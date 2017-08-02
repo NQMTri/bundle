@@ -14,38 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package frontend;
-
-import backend.DiServerBackend;
+package protocol;
 
 /**
  *
  * @author khoi
  */
-public abstract class DiServerFrontend {
-    
-    protected DiServerBackend server;
-    protected volatile boolean serverUp = false;
+public abstract class Command extends Package {
 
-    public abstract void log(String msg);
-    public abstract void start();
-    public abstract void stop();
-    public abstract void disconnectClient(int id);
-    public abstract void banClient(int id);
-
-    public DiServerFrontend() {
-        Thread.currentThread().setName("Frontend Thread");
-    }
-
-    public void setServerUp(boolean b) {
-        serverUp = b;
-    }
-
-    public boolean isServerUp() {
-        return serverUp;
+    public enum CommandType {
+        LOGIN,
+        LOGOUT,
+        WHOISIN
     }
     
-    void setBackend(int portNumber) {
-        server = new DiServerBackend(portNumber);
+    public abstract CommandType getCommandType();
+    
+    @Override
+    public CommunicationType getCommunicationType() {
+        return CommunicationType.COMMAND;
     }
 }
