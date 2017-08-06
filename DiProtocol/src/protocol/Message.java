@@ -20,13 +20,13 @@ package protocol;
  *
  * @author khoi
  */
-public abstract class Message extends Communication {
+public abstract class Message extends Package {
     public enum MessageType {
         TEXT_MESSAGE
     }
     
     @Override
-    public CommunicationType getType() {
+    public CommunicationType getCommunicationType() {
         return CommunicationType.MESSAGE;
     }
     

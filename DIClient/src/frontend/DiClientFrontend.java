@@ -14,37 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package protocol;
+package frontend;
 
 /**
  *
  * @author khoi
  */
-public abstract class Communication {
-     
-    /**
-     * There are several type of Communication
-     *  MESSAGE         : Message
-     *  LOGOUT          : Tells server the client is logging out
-     *  LOGIN           : Holds login information
-     *  WHOISIN         : Asks servers who is in the room
-     */
-    public enum CommunicationType {
-        MESSAGE,
-        LOGOUT,
-        WHOISIN,
-        LOGIN
-    }    
-    static final long serialVersionUID = 1L;
+public class DiClientFrontend {
 
-    protected long timestamp;
-
-    /**
-     * @return Type of Communication Object
-     */
-    public abstract CommunicationType getType();
-
-    public Communication() {
-        timestamp = System.currentTimeMillis() / 1000L;
+    public void log(String message) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
 }

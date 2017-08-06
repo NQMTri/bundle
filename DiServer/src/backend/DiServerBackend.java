@@ -24,9 +24,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
 import java.util.TreeMap;
-import protocol.Communication;
 import protocol.Login;
 import protocol.Message;
+import protocol.Package;
 
 /**
  *
@@ -37,7 +37,7 @@ public class DiServerBackend extends Thread {
     private int uniqueId;
     private int portNumber;
     private boolean keepGoing = false;
-    private final Map<Integer, ClientThread> clients;
+    private final Map<Integer, ListenToClient> clients;
     private DiServerFrontend frontend;
 
     public boolean setPortNumber(int portNumber) {
@@ -53,16 +53,17 @@ public class DiServerBackend extends Thread {
         return portNumber;
     }
 
-    public DiServerBackend() {
+    public DiServerBackend(int portNumber) {
+        this.setName("ServerThread: " + portNumber);
         this.uniqueId = 0;
         this.clients = new TreeMap<>();
-        portNumber = 8080;
+        this.portNumber = portNumber;
     }
 
     public void setFrontend(DiServerFrontend frontend) {
         this.frontend = frontend;
     }
-    
+
     @Override
     public void run() {
         /* Pre-checking */
@@ -73,21 +74,22 @@ public class DiServerBackend extends Thread {
         }
         frontend.log("Prechecking passed");
         keepGoing = true;
-        
+
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
-            frontend.setServerReady(true);
             frontend.log("Server is now running");
+            frontend.setServerUp(true);
             while (keepGoing) {
                 frontend.log("Waiting for connection");
+                // IO block
                 Socket socket = serverSocket.accept();
                 frontend.log("Connection from " + socket.getInetAddress());
                 frontend.log("Keep going = " + keepGoing);
-                
+
                 if (!keepGoing) {
                     break;
                 }
-                
-                ClientThread client = new ClientThread(socket);
+
+                ListenToClient client = new ListenToClient(socket);
                 clients.put(uniqueId++, client);
                 client.start();
             }
@@ -95,8 +97,8 @@ public class DiServerBackend extends Thread {
         } catch (IOException ex) {
             frontend.log(ex.getMessage());
         }
-        
-        for (Map.Entry<Integer, ClientThread> it : clients.entrySet()) {
+
+        for (Map.Entry<Integer, ListenToClient> it : clients.entrySet()) {
             try {
                 disconnectClient(it.getValue());
             } catch (IOException ex) {
@@ -104,6 +106,7 @@ public class DiServerBackend extends Thread {
             }
         }
         frontend.log("Server stopped");
+        frontend.setServerUp(false);
     }
 
     @SuppressWarnings("ResultOfObjectAllocationIgnored")
@@ -120,7 +123,7 @@ public class DiServerBackend extends Thread {
     }
 
     public boolean disconnectClient(int id) {
-        ClientThread target = clients.get(id);
+        ListenToClient target = clients.get(id);
         if (target != null) {
             clients.remove(id);
             try {
@@ -133,13 +136,13 @@ public class DiServerBackend extends Thread {
         return true;
     }
 
-    private synchronized void disconnectClient(ClientThread clientThread)
+    private synchronized void disconnectClient(ListenToClient clientThread)
             throws IOException {
         clientThread.disconnect();
     }
 
     public boolean banClient(int id) {
-        ClientThread target = clients.get(id);
+        ListenToClient target = clients.get(id);
         if (target != null) {
             target.ban();
         }
@@ -148,7 +151,7 @@ public class DiServerBackend extends Thread {
     }
 
     private synchronized void broadcastMsg(Message msg) {
-        for (Map.Entry<Integer, ClientThread> it : clients.entrySet()) {
+        for (Map.Entry<Integer, ListenToClient> it : clients.entrySet()) {
             it.getValue().write(msg);
         }
     }
@@ -156,7 +159,7 @@ public class DiServerBackend extends Thread {
     /**
      * Server spawns these threads to deal with each connection concurrently
      */
-    class ClientThread extends Thread {
+    class ListenToClient extends Thread {
 
         private final Socket socket;
         private final ObjectInputStream instream;
@@ -164,7 +167,8 @@ public class DiServerBackend extends Thread {
         private String handle;
         boolean keepGoing = true;
 
-        public ClientThread(Socket socket) throws IOException {
+        public ListenToClient(Socket socket) throws IOException {
+            this.setName("ListenToClientThread: " + socket.getInetAddress());
             this.socket = socket;
             this.instream = new ObjectInputStream(socket.getInputStream());
             this.outstream = new ObjectOutputStream(socket.getOutputStream());
@@ -205,9 +209,9 @@ public class DiServerBackend extends Thread {
             return true;
         }
 
-        private Communication receive() throws IOException,
+        private Package receive() throws IOException,
                 ClassNotFoundException {
-            Communication ret = (Communication) instream.readObject();
+            Package ret = (Package) instream.readObject();
             return ret;
         }
 
@@ -218,20 +222,26 @@ public class DiServerBackend extends Thread {
         @Override
         public void run() {
             frontend.log("Server thread is listening to client");
+            // TODO: Refactor this shit
             while (keepGoing) {
                 try {
-                    Communication com = receive();
-                    switch (com.getType()) {
-                        case LOGOUT:
-                            keepGoing = false;
-                            disconnectClient(this);
+                    Package com = receive();
+                    switch (com.getCommunicationType()) {
+                        case COMMAND:
+                            
                             break;
                         case MESSAGE:
-                            broadcastMsg((Message) com);
                             break;
-                        case WHOISIN:
-                            whoisin();
-                            break;
+//                        case LOGOUT:
+//                            keepGoing = false;
+//                            disconnectClient(this);
+//                            break;
+//                        case MESSAGE:
+//                            broadcastMsg((Message) com);
+//                            break;
+//                        case WHOISIN:
+//                            whoisin();
+//                            break;
                         default:
                             break;
                     }
@@ -243,5 +253,6 @@ public class DiServerBackend extends Thread {
 
         private void whoisin() {
         }
+
     }
 }

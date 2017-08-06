@@ -14,38 +14,37 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package frontend;
+package protocol;
 
-import backend.DiServerBackend;
+import java.io.Serializable;
 
 /**
  *
  * @author khoi
  */
-public abstract class DiServerFrontend {
-    
-    protected DiServerBackend server;
-    protected volatile boolean serverUp = false;
-
-    public abstract void log(String msg);
-    public abstract void start();
-    public abstract void stop();
-    public abstract void disconnectClient(int id);
-    public abstract void banClient(int id);
-
-    public DiServerFrontend() {
-        Thread.currentThread().setName("Frontend Thread");
+public abstract class Package implements Serializable {
+     
+    /**
+     * There are several type of Communication
+     *  MESSAGE         : Message
+     *  LOGOUT          : Tells server the client is logging out
+     *  LOGIN           : Holds login information
+     *  WHOISIN         : Asks servers who is in the room
+     */
+    public enum CommunicationType {
+        MESSAGE,
+        COMMAND
     }
+    static final long serialVersionUID = 1L;
 
-    public void setServerUp(boolean b) {
-        serverUp = b;
-    }
+    protected long timestamp;
 
-    public boolean isServerUp() {
-        return serverUp;
-    }
-    
-    void setBackend(int portNumber) {
-        server = new DiServerBackend(portNumber);
+    /**
+     * @return Type of Communication Object
+     */
+    public abstract CommunicationType getCommunicationType();
+
+    public Package() {
+        timestamp = System.currentTimeMillis() / 1000L;
     }
 }

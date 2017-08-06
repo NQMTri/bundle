@@ -16,9 +16,8 @@
  */
 package program;
 
-import backend.DiServerBackend;
-import frontend.DiServerFrontEndCLI;
 import frontend.DiServerFrontend;
+import frontend.DiServerFrontendCLI;
 
 /**
  *
@@ -27,9 +26,7 @@ import frontend.DiServerFrontend;
 public class DiServerCLI {
     
     public static void main(String[] args) {
-        DiServerFrontend frontend = new DiServerFrontEndCLI();
-        DiServerBackend backend = new DiServerBackend();
-        
+        DiServerFrontend frontend = new DiServerFrontendCLI();
         frontend.start();
     }
 }

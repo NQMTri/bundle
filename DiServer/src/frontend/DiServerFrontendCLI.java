@@ -16,19 +16,19 @@
  */
 package frontend;
 
-import backend.DiServerBackend;
 import java.util.Scanner;
+import java.util.Set;
 
 /**
  *
  * @author khoi
  */
-public class DiServerFrontEndCLI extends DiServerFrontend {
+public class DiServerFrontendCLI extends DiServerFrontend {
 
     private boolean keepGoing;
     private final Scanner scanner;
 
-    public DiServerFrontEndCLI() {
+    public DiServerFrontendCLI() {
         keepGoing = true;
         scanner = new Scanner(System.in);
     }
@@ -47,21 +47,30 @@ public class DiServerFrontEndCLI extends DiServerFrontend {
             switch (command) {
                 case "stop":
                     stop();
+                    while (isServerUp()) {
+                        // Wait until server is down
+                    }
                     break;
                 case "exit":
                     keepGoing = false;
                     stop();
                     break;
                 case "start":
-                    if (!serverReady) {
-                        server = new DiServerBackend();
+                    if (!serverUp) {
+                        this.setBackend(8080);
                         server.setFrontend(this);
                         server.start();
-                        while (!isServerReady()) {
-                            // waiting
+                        while (!isServerUp()) {
+                            // Wait until server is up
                         }
                     } else {
                         log("Server is already started");
+                    }
+                    break;
+                case "threads":
+                    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+                    for (Thread it : threadSet) {
+                        System.out.println(it);
                     }
                     break;
                 default:
@@ -74,7 +83,6 @@ public class DiServerFrontEndCLI extends DiServerFrontend {
 
     @Override
     public void stop() {
-        serverReady = false;
         server.stopServer();
     }
 

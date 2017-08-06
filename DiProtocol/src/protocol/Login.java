@@ -21,10 +21,10 @@ package protocol;
  *
  * @author khoi
  */
-public class Login extends Communication {
+public class Login extends Command {
 
     private final String handle;
-
+    
     public Login(String handle) {
         this.handle = handle;
     }
@@ -34,7 +34,7 @@ public class Login extends Communication {
     }
 
     @Override
-    public CommunicationType getType() {
-        return CommunicationType.LOGIN;
+    public CommandType getCommandType() {
+        return CommandType.LOGIN;
     }
 }

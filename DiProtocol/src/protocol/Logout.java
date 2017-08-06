@@ -20,10 +20,10 @@ package protocol;
  *
  * @author khoi
  */
-public class Logout extends Communication {
+public class Logout extends Command {
 
     @Override
-    public CommunicationType getType() {
-        return CommunicationType.LOGOUT;
+    public CommandType getCommandType() {
+        return CommandType.LOGOUT;
     }
 }

@@ -20,6 +20,10 @@ package protocol;
  *
  * @author khoi
  */
-public class Whoisin {
-    
+public class Whoisin extends Command {
+
+    @Override
+    public CommandType getCommandType() {
+        return CommandType.WHOISIN;
+    }
 }
